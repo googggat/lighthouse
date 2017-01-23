@@ -98,7 +98,8 @@
     "dobetterweb/notification-on-start",
     "dobetterweb/script-blocking-first-paint",
     "dobetterweb/uses-http2",
-    "dobetterweb/uses-passive-event-listeners"
+    "dobetterweb/uses-passive-event-listeners",
+    "dobetterweb/uses-request-compression"
   ],
 
   "aggregations": [{
@@ -276,7 +277,7 @@
       "audits": {
         "unused-css-rules": {},
         "uses-optimized-images": {},
-        "uses-responsive-images": {}
+        "uses-request-compression": {}
       }
     }, {
       "name": "Using modern CSS features",
