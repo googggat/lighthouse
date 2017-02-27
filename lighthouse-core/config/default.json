@@ -85,6 +85,7 @@
     "accessibility/tabindex",
     "byte-efficiency/unused-css-rules",
     "byte-efficiency/uses-optimized-images",
+    "byte-efficiency/uses-request-compression",
     "byte-efficiency/uses-responsive-images",
     "dobetterweb/external-anchors-use-rel-noopener",
     "dobetterweb/appcache-manifest",
@@ -99,8 +100,7 @@
     "dobetterweb/notification-on-start",
     "dobetterweb/script-blocking-first-paint",
     "dobetterweb/uses-http2",
-    "dobetterweb/uses-passive-event-listeners",
-    "dobetterweb/uses-request-compression"
+    "dobetterweb/uses-passive-event-listeners"
   ],
 
   "aggregations": [{

@@ -15,8 +15,9 @@
  */
 'use strict';
 
+const KB_BYTES = 1024;
 const ResponsesAreCompressedAudit =
-  require('../../../audits/dobetterweb/uses-request-compression.js');
+  require('../../../audits/byte-efficiency/uses-request-compression.js');
 const assert = require('assert');
 
 function generateResponse(filename, type, originalSize, gzipSize) {
@@ -34,24 +35,24 @@ describe('Page uses optimized responses', () => {
   it('fails when reponses are collectively unoptimized', () => {
     const auditResult = ResponsesAreCompressedAudit.audit_({
       ResponseCompression: [
-        generateResponse('index.js', 'text/javascript', 10000, 9000),
-        generateResponse('index.css', 'text/css', 5000, 3700),
-        generateResponse('index.json', 'application/json', 204800, 102400),
+        generateResponse('index.js', 'text/javascript', 100 * KB_BYTES, 90 * KB_BYTES),
+        generateResponse('index.css', 'text/css', 50 * KB_BYTES, 37 * KB_BYTES),
+        generateResponse('index.json', 'application/json', 2048 * KB_BYTES, 1024 * KB_BYTES),
       ],
     });
 
-    assert.equal(auditResult.rawValue, false);
+    assert.equal(auditResult.passes, false);
   });
 
   it('passes when all reponses are sufficiently optimized', () => {
     const auditResult = ResponsesAreCompressedAudit.audit_({
       ResponseCompression: [
-        generateResponse('index.js', 'text/javascript', 100000, 91000),
-        generateResponse('index.css', 'text/css', 5000, 4000),
-        generateResponse('index.json', 'application/json', 1000, 500),
+        generateResponse('index.js', 'text/javascript', 1000 * KB_BYTES, 910 * KB_BYTES),
+        generateResponse('index.css', 'text/css', 50 * KB_BYTES, 40 * KB_BYTES),
+        generateResponse('index.json', 'application/json', 10 * KB_BYTES, 5 * KB_BYTES),
       ],
     });
 
-    assert.equal(auditResult.rawValue, true);
+    assert.equal(auditResult.passes, true);
   });
 });

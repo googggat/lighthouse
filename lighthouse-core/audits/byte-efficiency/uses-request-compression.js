@@ -20,12 +20,11 @@
  */
 'use strict';
 
-const Audit = require('../audit');
+const Audit = require('./byte-efficiency-audit');
 const URL = require('../../lib/url-shim');
-const Formatter = require('../../formatters/formatter');
 
-const KB_IN_BYTES = 1024;
-const TOTAL_WASTED_BYTES_THRESHOLD = 100 * KB_IN_BYTES;
+const IGNORE_THRESHOLD_IN_BYTES = 1400;
+const TOTAL_WASTED_BYTES_THRESHOLD = 1000 * 1024; // 1KB
 
 class ResponsesAreCompressed extends Audit {
   /**
@@ -44,22 +43,10 @@ class ResponsesAreCompressed extends Audit {
 
   /**
    * @param {!Artifacts} artifacts
-   * @return {!AuditResult}
-   */
-  static audit(artifacts) {
-    const networkRecords = artifacts.networkRecords[Audit.DEFAULT_PASS];
-
-    return artifacts.requestNetworkThroughput(networkRecords).then(networkThroughput => {
-      return ResponsesAreCompressed.audit_(artifacts, networkThroughput);
-    });
-  }
-
-  /**
-   * @param {!Artifacts} artifacts
    * @param {number} networkThroughput
    * @return {!AuditResult}
    */
-  static audit_(artifacts, networkThroughput) {
+  static audit_(artifacts) {
     const uncompressedResponses = artifacts.ResponseCompression;
 
     let totalWastedBytes = 0;
@@ -69,48 +56,37 @@ class ResponsesAreCompressed extends Audit {
       const gzipSavings = originalSize - gzipSize;
 
       // allow a pass if we don't get 10% savings or less than 1400 bytes
-      if (gzipSize / originalSize > 0.9 || gzipSavings < 1400) {
+      if (gzipSize / originalSize > 0.9 || gzipSavings < IGNORE_THRESHOLD_IN_BYTES) {
         return results;
       }
 
       totalWastedBytes += gzipSavings;
       const url = URL.getDisplayName(record.url);
-      const totalKb = originalSize / KB_IN_BYTES;
-      const gzipSavingsKb = gzipSavings / KB_IN_BYTES;
+      const totalBytes = originalSize;
+      const gzipSavingsBytes = gzipSavings;
+      const gzipSavingsPercent = 100 * gzipSavingsBytes / totalBytes;
       results.push({
         url,
-        total: `${totalKb.toLocaleString()} KB`,
-        gzipSavings: `${gzipSavingsKb.toLocaleString()} KB`,
+        totalBytes,
+        wastedBytes: gzipSavingsBytes,
+        wastedPercent: gzipSavingsPercent,
+        gzipSavings: this.toSavingsString(gzipSavingsBytes, gzipSavingsPercent),
       });
 
       return results;
     }, []);
 
     let debugString;
-    let displayValue = '';
-    if (totalWastedBytes > 1000) {
-      const totalWastedKb = Math.round(totalWastedBytes / KB_IN_BYTES);
-      // Only round to nearest 10ms since we're relatively hand-wavy
-      const totalWastedMs = Math.round(totalWastedBytes / networkThroughput * 100) * 10;
-      displayValue = `${totalWastedKb}KB (~${totalWastedMs}ms) potential savings`;
-    }
-
-    return ResponsesAreCompressed.generateAuditResult({
-      displayValue,
+    return {
+      passes: totalWastedBytes < TOTAL_WASTED_BYTES_THRESHOLD,
       debugString,
-      rawValue: totalWastedBytes < TOTAL_WASTED_BYTES_THRESHOLD,
-      extendedInfo: {
-        formatter: Formatter.SUPPORTED_FORMATS.TABLE,
-        value: {
-          results,
-          tableHeadings: {
-            url: 'URL',
-            total: 'Original (KB)',
-            gzipSavings: 'GZIP Savings (KB)',
-          }
-        }
+      results,
+      tableHeadings: {
+        url: 'URL',
+        totalKb: 'Original',
+        gzipSavings: 'GZIP Savings',
       }
-    });
+    };
   }
 }
 
