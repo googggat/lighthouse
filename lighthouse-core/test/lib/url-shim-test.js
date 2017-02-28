@@ -59,10 +59,10 @@ describe('URL Shim', () => {
   });
 
   describe('getDisplayName', () => {
-    it('respects pathParts option', () => {
+    it('respects numPathParts option', () => {
       const url = 'http://example.com/a/deep/nested/file.css';
-      const result = URL.getDisplayName(url, {pathParts: 3});
-      assert.equal(result, '/\u2026/deep/nested/file.css');
+      const result = URL.getDisplayName(url, {numPathParts: 3});
+      assert.equal(result, '\u2026deep/nested/file.css');
     });
 
     it('respects removeQuery option', () => {
