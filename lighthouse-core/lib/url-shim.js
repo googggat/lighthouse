@@ -59,9 +59,16 @@ URL.hostsMatch = function hostsMatch(urlA, urlB) {
 
 /**
  * @param {string} url
+ * @param {{pathParts: number, removeQuery: boolean, removeHost: boolean}=} options
  * @return {string}
  */
-URL.getDisplayName = function getDisplayName(url) {
+URL.getDisplayName = function getDisplayName(url, options) {
+  options = Object.assign({
+    pathParts: 2,
+    removeQuery: true,
+    removeHost: true,
+  }, options)
+
   const parsed = new URL(url);
 
   let name;
@@ -70,16 +77,37 @@ URL.getDisplayName = function getDisplayName(url) {
     // Handle 'about:*' and 'data:*' URLs specially since they have no path.
     name = parsed.href;
   } else {
-    // Otherwise, remove any query strings from the path.
-    name = parsed.pathname.replace(/\?.*/, '')
-        // And grab the last two parts.
-        .split('/').slice(-2).join('/');
+    name = parsed.pathname;
+    const parts = name.split('/')
+    if (options.pathParts && parts.length > options.pathParts) {
+      name = '/\u2026/' + parts.slice(-1 * options.pathParts).join('/');
+    }
+
+    if (!options.removeHost) {
+      name = `${parsed.host}/${name.replace(/^\//, '')}`;
+    }
+    if (!options.removeQuery) {
+      name = `${name}${parsed.search}`
+    }
   }
 
   const MAX_LENGTH = 64;
   // Always elide hash
   name = name.replace(/([a-f0-9]{7})[a-f0-9]{13}[a-f0-9]*/g, '$1\u2026');
-  // Elide too long names
+
+  // Elide query params first
+  if (name.length > MAX_LENGTH && name.includes('?')) {
+    const prevName = name;
+    // Try to leave the first query parameter intact
+    name = name.replace(/\?([^=]*)(=)?.*/, '?$1$2\u2026')
+
+    // Remove it all if it's still too long
+    if (name.length > MAX_LENGTH) {
+      name = name.replace(/\?.*/, '?\u2026')
+    }
+  }
+
+  // Elide too long names next
   if (name.length > MAX_LENGTH) {
     const dotIndex = name.lastIndexOf('.');
     if (dotIndex >= 0) {
