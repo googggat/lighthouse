@@ -67,7 +67,7 @@ URL.getDisplayName = function getDisplayName(url, options) {
     pathParts: 2,
     removeQuery: true,
     removeHost: true,
-  }, options)
+  }, options);
 
   const parsed = new URL(url);
 
@@ -78,7 +78,7 @@ URL.getDisplayName = function getDisplayName(url, options) {
     name = parsed.href;
   } else {
     name = parsed.pathname;
-    const parts = name.split('/')
+    const parts = name.split('/');
     if (options.pathParts && parts.length > options.pathParts) {
       name = '/\u2026/' + parts.slice(-1 * options.pathParts).join('/');
     }
@@ -87,7 +87,7 @@ URL.getDisplayName = function getDisplayName(url, options) {
       name = `${parsed.host}/${name.replace(/^\//, '')}`;
     }
     if (!options.removeQuery) {
-      name = `${name}${parsed.search}`
+      name = `${name}${parsed.search}`;
     }
   }
 
@@ -97,13 +97,12 @@ URL.getDisplayName = function getDisplayName(url, options) {
 
   // Elide query params first
   if (name.length > MAX_LENGTH && name.includes('?')) {
-    const prevName = name;
     // Try to leave the first query parameter intact
-    name = name.replace(/\?([^=]*)(=)?.*/, '?$1$2\u2026')
+    name = name.replace(/\?([^=]*)(=)?.*/, '?$1$2\u2026');
 
     // Remove it all if it's still too long
     if (name.length > MAX_LENGTH) {
-      name = name.replace(/\?.*/, '?\u2026')
+      name = name.replace(/\?.*/, '?\u2026');
     }
   }
 

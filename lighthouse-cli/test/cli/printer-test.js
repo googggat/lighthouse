@@ -87,7 +87,7 @@ describe('Printer', () => {
     const mode = 'pretty';
     const prettyOutput = Printer.createOutput(sampleResults, mode);
     const output = new RegExp(log.heavyHorizontal + log.heavyHorizontal +
-                   ' images\/chrome-touch-icon-384x384.png', 'i');
+                   ' \/\u2026\/images\/chrome-touch-icon-384x384.png', 'i');
 
     assert.ok(output.test(prettyOutput));
   });
