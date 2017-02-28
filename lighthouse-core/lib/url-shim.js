@@ -23,6 +23,8 @@
 
 /* global self */
 
+const ELLIPSIS = '\u2026';
+
 // TODO: Add back node require('url').URL parsing when bug is resolved:
 // https://github.com/GoogleChrome/lighthouse/issues/1186
 const URL = (typeof self !== 'undefined' && self.URL) || require('whatwg-url').URL;
@@ -80,7 +82,7 @@ URL.getDisplayName = function getDisplayName(url, options) {
     name = parsed.pathname;
     const parts = name.split('/');
     if (options.numPathParts && parts.length > options.numPathParts) {
-      name = '\u2026' + parts.slice(-1 * options.numPathParts).join('/');
+      name = ELLIPSIS + parts.slice(-1 * options.numPathParts).join('/');
     }
 
     if (!options.removeHost) {
@@ -93,16 +95,16 @@ URL.getDisplayName = function getDisplayName(url, options) {
 
   const MAX_LENGTH = 64;
   // Always elide hash
-  name = name.replace(/([a-f0-9]{7})[a-f0-9]{13}[a-f0-9]*/g, '$1\u2026');
+  name = name.replace(/([a-f0-9]{7})[a-f0-9]{13}[a-f0-9]*/g, `$1${ELLIPSIS}`);
 
   // Elide query params first
   if (name.length > MAX_LENGTH && name.includes('?')) {
     // Try to leave the first query parameter intact
-    name = name.replace(/\?([^=]*)(=)?.*/, '?$1$2\u2026');
+    name = name.replace(/\?([^=]*)(=)?.*/, `?$1$2${ELLIPSIS}`);
 
     // Remove it all if it's still too long
     if (name.length > MAX_LENGTH) {
-      name = name.replace(/\?.*/, '?\u2026');
+      name = name.replace(/\?.*/, `?${ELLIPSIS}`);
     }
   }
 
@@ -112,9 +114,9 @@ URL.getDisplayName = function getDisplayName(url, options) {
     if (dotIndex >= 0) {
       name = name.slice(0, MAX_LENGTH - 1 - (name.length - dotIndex)) +
           // Show file extension
-          `\u2026${name.slice(dotIndex)}`;
+          `${ELLIPSIS}${name.slice(dotIndex)}`;
     } else {
-      name = name.slice(0, MAX_LENGTH - 1) + '\u2026';
+      name = name.slice(0, MAX_LENGTH - 1) + ELLIPSIS;
     }
   }
 
